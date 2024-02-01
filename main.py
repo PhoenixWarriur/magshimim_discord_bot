@@ -126,7 +126,7 @@ async def view_code(interaction: discord.Interaction):
     embed = create_embed(title="View Bot Code", description='click the button below to view the bot\'s code')
     view = discord.ui.View()
     button = discord.ui.Button(label='repo', style=discord.ButtonStyle.link,
-                               url='https://replit.com/@nvmqsprsqy/Magshimim-Discord-Bot#main.py')
+                               url='https://github.com/PhoenixWarriur/magshimim_discord_bot')
     view.add_item(item=button)
     await interaction.response.send_message(embed=embed, view=view)
 
