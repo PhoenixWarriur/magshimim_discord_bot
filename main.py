@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 from typing import List
 
-load_dotenv(os.path.join(os.getcwd(), ".env"))
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 TOKEN = os.getenv("TOKEN")
 OFFICIAL_SERVER_ID = int(os.getenv("OFFICIAL_SERVER_ID"))
