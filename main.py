@@ -10,6 +10,7 @@ load_dotenv(".env")
 TOKEN = os.getenv("TOKEN")
 OFFICIAL_SERVER_ID = int(os.getenv("OFFICIAL_SERVER_ID"))
 OFFICIAL_CHANNEL_ID = int(os.getenv("OFFICIAL_CHANNEL_ID"))
+ME = int(os.getenv("ME"))
 
 intents = discord.Intents.all()
 
@@ -17,6 +18,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 guild = None
 channel = None
+me = None
 db = {}
 
 
@@ -59,41 +61,36 @@ def text2embed(text: str, color: discord.Color = None) -> discord.Embed:
     return create_embed(title=title, description=description, color=color)
 
 
-@tree.command(name="save-cheat-sheet")
-async def save(interaction: discord.Interaction):
-    allowed_role = discord.utils.get(interaction.guild.roles, name="official editor")
+@tree.command(name="reload")
+async def reload(interaction: discord.Interaction):
 
     author = interaction.user
     member = interaction.guild.get_member(author.id)
 
-    if any(role == allowed_role for role in member.roles):
+    if member == me:
         db['cheat sheet'] = await get_cheat_sheet()
 
         embed = discord.Embed(title=':white_check_mark: Saved!', description='Cheat Sheet was Saved Successfully', color=discord.Color.green())
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
     else:
-        embed = discord.Embed(title=':x: Access Denied.', description=f"You must have the '{allowed_role.mention}' role to use this command.", color=discord.Color.red())
+        embed = discord.Embed(title=':x: Access Denied.', description=f"You must be '{me.mention}' to use this command.", color=discord.Color.red())
         await interaction.response.send_message(content=" ", ephemeral=True)
 
 
-@save.error
+@reload.error
 async def clear_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
     await interaction.response.send_message(content="An error occurred while executing the command.", ephemeral=True)
 
 
 @tree.command(name="get", description="Get a Piece Code From Our Official Cheat Sheet!")
 async def get(interaction: discord.Interaction, code: str):
-    channel = discord.utils.get(interaction.guild.channels, name="official-cheat-sheet")
-    if channel is None:
-        await interaction.response.send_message(content="Invalid channel!", ephemeral=True)
-        return
 
     messages = db['cheat sheet']
     message_id = messages.get(code)
 
     if message_id is None:
-        await interaction.response.send_message(content="Invalid code!", ephemeral=True)
+        await interaction.response.send_message(content="Invalid message!", ephemeral=True)
         return
 
     try:
@@ -132,14 +129,8 @@ async def view_code(interaction: discord.Interaction):
 
 
 @bot.event
-async def on_message(message):
-    if not isinstance(message.channel, discord.TextChannel):
-        return
-
-    if message.channel.name != 'official-cheat-sheet':
-        return
-
-    if message.author == bot.user:
+async def on_message(message: discord.Message):
+    if message.channel != channel:
         return
 
     db['cheat sheet'][message.content.split("\n")[0].replace("**", "")] = message.id
@@ -147,11 +138,12 @@ async def on_message(message):
 
 @bot.event
 async def on_ready():
-    global guild, channel, db
+    global guild, channel, me, db
     await tree.sync()
     print(f"I am {bot.user}")
     guild = bot.get_guild(OFFICIAL_SERVER_ID)
     channel = guild.get_channel(OFFICIAL_CHANNEL_ID)
+    me = guild.get_member(ME)
     db["cheat sheet"] = await get_cheat_sheet()
 
 
