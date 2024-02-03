@@ -70,7 +70,7 @@ async def reload(interaction: discord.Interaction):
     if member == me:
         db['cheat sheet'] = await get_cheat_sheet()
 
-        embed = discord.Embed(title=':white_check_mark: Saved!', description='Cheat Sheet was Saved Successfully', color=discord.Color.green())
+        embed = discord.Embed(title=':white_check_mark: Reloaded!', description='Cheat Sheet was Reloaded Successfully', color=discord.Color.green())
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
     else:
